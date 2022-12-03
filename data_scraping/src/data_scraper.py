@@ -10,13 +10,14 @@ data_scraping = Path(__file__).resolve().parent.parent
 
 # Retrieve credentials (https://developer.spotify.com/documentation/general/guides/authorization/scopes/)
 scope = 'playlist-read-collaborative'
-
 sp = spotipy.Spotify(auth_manager=SpotifyOAuth(scope=scope))
 playlist_data = sp.current_user_playlists()
+
+### Global Variables ###
 added_tracks = set()   # list of track_ids added to playlists
 added_artists = set() # list of artist_ids added to playlists
-data = []
-total_added = 0
+data = []   # list of dictionaries containing track data
+total_added = 0 # total added tracks
 
 def add_track_data(artist_name, artist_id, album_title, album_id, track_title, track_id):
     '''
@@ -111,7 +112,9 @@ def dfs_add_related_artists(writer, artist_id, iterations, depth):
         dfs_add_related_artists(writer, artist['id'], iterations, depth-1)
 
 def bfs_add_related_artists(initial_artists, iterations):
-    
+    '''
+    does a breadth-first search on the related artists and adds them. adds up to iterations
+    '''
     global total_added
 
     # initialize the queue by adding all artists in added_artists
@@ -119,7 +122,6 @@ def bfs_add_related_artists(initial_artists, iterations):
     for artist in initial_artists:
         q.put(artist)
 
-    print('added!', q.qsize())
     while not q.empty():
 
         # get the next artist and write their data
@@ -140,7 +142,14 @@ def bfs_add_related_artists(initial_artists, iterations):
                 q.put(neighbor)
 
 def add_user_playlists():
+    '''
+    Adds all tracks from a user's playlists to the data
+    '''
+
+    # creates a set to stor eall of the artists
     initial_artists = {}
+
+    # iterates through all of the user's playlists
     for playlists in playlist_data['items']:
 
         # Retrieve number of tracks, loop until all tracks have been added
@@ -159,11 +168,16 @@ def add_user_playlists():
                 if track['artists'][0]['id'] not in initial_artists:
                     initial_artists.add(track['artists'][0]['id'])
 
+            # updates offset
             offset += 100
 
-    bfs_add_related_artists(initial_artists, 100000) # add 100,000 songs 
+    # adds related artists using a breadth-first search
+    bfs_add_related_artists(initial_artists, 100000) 
 
 def main():
+    '''
+    Main function which reads and writes all data to data.csv
+    '''
     ### Reads Data from data.csv ###
     with open(os.path.join(data_scraping, 'data.csv'), 'r') as f:
         reader = csv.reader(f)
@@ -191,7 +205,7 @@ def main():
         add_user_playlists()
 
         ### 2. Add artists from spotify's playlists ###
-        
+
         ### 3. Write all data to file ###
         for track in data:
             writer.writerow([track['artist_name'], track['artist_id'], track['album_title'], track['album_id'], track['track_title'], track['track_id']])
