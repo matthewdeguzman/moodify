@@ -5,72 +5,17 @@ import csv
 import os
 
 # retrieve parent directory
-directory = Path(__file__).resolve().parent.parent.parent
+directory = Path(__file__).resolve().parent.parent
 
 # Retrieve credentials (https://developer.spotify.com/documentation/general/guides/authorization/scopes/)
 # Get your credentials from Spotify for Developers
 client_id='902386052a87438185e83043720ed2b2'
 client_secret='a9997a3d84994fd7b7f1c09d3419a0b1'
 redirect_uri='https://localhost:8888/callback'
-username = 'madmatt10125'
-scope = 'playlist-modify-public'
 
 #Credentials to access the Spotify Music Data
 manager = spotipy.SpotifyClientCredentials(client_id,client_secret)
 spotify = spotipy.Spotify(client_credentials_manager=manager)
-
-### Global Variables ###
-data = []   # list of dictionaries containing track data
-
-def add_track_data(artist_name, artist_id, album_title, album_id, track_title, track_id, mood):
-    '''
-    Adds a track to the data.csv file in the specified format
-    '''
-    global added_tracks
-    data.append([{'artist_name': artist_name, 'artist_id': artist_id, 'album_title': album_title, 'album_id': album_id, 
-    'track_title': track_title, 'track_id': track_id, 'happy': mood['happy'], 'sad': mood['sad'], 'calm': mood['calm'], 
-    'energy': mood['energy']}])
-    
-
-def get_track_features(track_ids):
-    '''
-    Gets the audio features for a list of 100 songs 3 requests per call
-    '''
-
-    # Get the data and features of the songs
-    meta_data = spotify.tracks(track_ids[:50]) + sp.tracks(track_ids[50:])
-    features = spotify.audio_features(track_ids)
-
-    # map that will hold the data for each each song
-    data = {track_ids[i] : {} for i in range(track_ids)}
-    # meta
-    
-    # puts track data in data
-    for track_data in meta_data['tracks']:
-        data[track_data['id']]['name'] = track_data['name']
-        data[track_data['id']]['album'] = track_data['album']['name']
-        data[track_data['id']]['artist'] = track_data['album']['artists'][0]['name']
-        data[track_data['id']]['release_date'] = track_data['album']['release_date']
-        data[track_data['id']]['length'] = track_data['duration_ms']
-        data[track_data['id']]['popularity'] = track_data['popularity']
-
-    # inserts the track_features into the map
-    for track_feature in features:
-        track_id = track_feature['id']
-        data[track_id]['features'] = {}
-        data[track_id]['features']['acousticness'] = track_feature['acousticness']
-        data[track_id]['features']['danceability'] = track_feature['danceability']
-        data[track_id]['features']['energy'] = track_feature['energy']
-        data[track_id]['features']['instrumentalness'] = track_feature['instrumentalness']
-        data[track_id]['features']['liveness'] = track_feature['liveness']
-        data[track_id]['features']['loudness'] = track_feature['loudness']
-        data[track_id]['features']['valence'] = track_feature['valence']
-        data[track_id]['features']['speechiness'] = track_feature['speechiness']
-        data[track_id]['features']['tempo'] = track_feature['tempo']
-        data[track_id]['features']['key'] = track_feature['key']
-        data[track_id]['features']['time_signature'] = track_feature['time_signature']
-
-    return data
 
 def mood_evaluator(track_data):
     '''
@@ -106,13 +51,12 @@ def mood_evaluator(track_data):
         mood_data.append("calm")
     else:
         mood_data.append("energetic")
-    
 
     return track_data[:1] + mood_data
 
 def main():
     '''
-    Main function which reads and writes all data to data.csv
+    Main function which reads and writes all data to track_feaures.csv
     '''
     # Goes through the csv file and reads in the track ids and audio features of the song.
     # The mood of each song is evaluated as well and given an overall mood.
@@ -124,9 +68,8 @@ def main():
         reader = csv.reader(f)
 
         # reads every line in the file and evaluates the
-        #  mood of the song from the data then appends the data to the data list
+        # mood of the song from the data then appends the data to the data list
         for row in reader:
-            
             data.append(mood_evaluator(row))
 
     # writes the data to the csv file
@@ -134,6 +77,7 @@ def main():
         writer = csv.writer(f)
         writer.writerow(['track_id', 'happy', 'sad', 'calm', 'energy', 'mood'])
         writer.writerows(data)
-    
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     main()
+    
