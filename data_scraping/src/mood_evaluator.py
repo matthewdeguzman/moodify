@@ -5,7 +5,7 @@ import csv
 import os
 
 # retrieve parent directory
-directory = Path(__file__).resolve().parent.parent
+directory = Path(__file__).resolve().parent.parent.parent
 
 # Retrieve credentials (https://developer.spotify.com/documentation/general/guides/authorization/scopes/)
 # Get your credentials from Spotify for Developers
@@ -84,10 +84,10 @@ def mood_evaluator(track_data):
     Energy = 0.85 * energy + 0.15 * (loudness + 60)/60
     '''
     # gets track features and calculates the emotions from them
-    danceability = track_data[1]
-    energy = track_data[2]
-    loudness = track_data[3]
-    valence = track_data[4]
+    danceability = float(track_data[1])
+    energy = float(track_data[2])
+    loudness = float(track_data[3])
+    valence = float(track_data[4])
 
     happy = 0.15 * danceability + 0.85 * valence
     sad = 0.85 * (1 - valence) + 0.15 * (0.3 * energy ** 2 - 0.6 * energy + 0.3)
@@ -107,7 +107,7 @@ def mood_evaluator(track_data):
     else:
         mood_data.append("energetic")
     
-    track_data.append(mood_data)
+    track_data += mood_data
 
 def main():
     '''
@@ -125,19 +125,14 @@ def main():
         # reads every line in the file and evaluates the
         #  mood of the song from the data then appends the data to the data list
         for row in reader:
-            data.append(mood_evaluator(row))
+            mood_evaluator(row)
+            data.append(row)
 
     # writes the data to the csv file
     with open(os.path.join(directory, 'track_features.csv'), 'w', encoding='utf-8') as f:
         writer = csv.writer(f)
         writer.writerow(['track_id', 'danceability', 'energy', 'loudness', 'valence', 'happy', 'sad', 'calm', 'energy', 'mood'])
         writer.writerows(data)
-
-
-    
-        
-    
-
     
 if __name__ == '__main__':
     main()
