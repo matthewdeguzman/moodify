@@ -174,6 +174,46 @@ def add_user_playlists():
     # adds related artists using a breadth-first search
     bfs_add_related_artists(initial_artists, 100000) 
 
+def get_track_features(track_ids):
+    '''
+    Gets the audio features for a list of 100 songs 3 requests per call
+    '''
+
+    # Get the data and features of the songs
+    meta_data = sp.tracks(track_ids[:50]) + sp.tracks(track_ids[50:])
+    features = sp.audio_features(track_ids)
+
+    # map that will hold the data for each each song
+    data = {track_ids[i] : {} for i in range(track_ids)}
+    # meta
+    
+    # puts track data in data
+    for track_data in meta_data['tracks']:
+        data[track_data['id']]['name'] = track_data['name']
+        data[track_data['id']]['album'] = track_data['album']['name']
+        data[track_data['id']]['artist'] = track_data['album']['artists'][0]['name']
+        data[track_data['id']]['release_date'] = track_data['album']['release_date']
+        data[track_data['id']]['length'] = track_data['duration_ms']
+        data[track_data['id']]['popularity'] = track_data['popularity']
+
+    # inserts the track_features into the map
+    for track_feature in features:
+        track_id = track_feature['id']
+        data[track_id]['features'] = {}
+        data[track_id]['features']['acousticness'] = track_feature['acousticness']
+        data[track_id]['features']['danceability'] = track_feature['danceability']
+        data[track_id]['features']['energy'] = track_feature['energy']
+        data[track_id]['features']['instrumentalness'] = track_feature['instrumentalness']
+        data[track_id]['features']['liveness'] = track_feature['liveness']
+        data[track_id]['features']['loudness'] = track_feature['loudness']
+        data[track_id]['features']['valence'] = track_feature['valence']
+        data[track_id]['features']['speechiness'] = track_feature['speechiness']
+        data[track_id]['features']['tempo'] = track_feature['tempo']
+        data[track_id]['features']['key'] = track_feature['key']
+        data[track_id]['features']['time_signature'] = track_feature['time_signature']
+
+    return data
+
 def main():
     '''
     Main function which reads and writes all data to data.csv
@@ -205,7 +245,7 @@ def main():
         add_user_playlists()
 
         ### 2. Add artists from spotify's playlists ###
-
+        
         ### 3. Write all data to file ###
         for track in data:
             writer.writerow([track['artist_name'], track['artist_id'], track['album_title'], track['album_id'], track['track_title'], track['track_id']])
