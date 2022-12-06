@@ -107,7 +107,8 @@ def mood_evaluator(track_data):
     else:
         mood_data.append("energetic")
     
-    track_data += mood_data
+
+    return track_data[:1] + mood_data
 
 def main():
     '''
@@ -125,13 +126,13 @@ def main():
         # reads every line in the file and evaluates the
         #  mood of the song from the data then appends the data to the data list
         for row in reader:
-            mood_evaluator(row)
-            data.append(row)
+            
+            data.append(mood_evaluator(row))
 
     # writes the data to the csv file
     with open(os.path.join(directory, 'track_features.csv'), 'w', encoding='utf-8') as f:
         writer = csv.writer(f)
-        writer.writerow(['track_id', 'danceability', 'energy', 'loudness', 'valence', 'happy', 'sad', 'calm', 'energy', 'mood'])
+        writer.writerow(['track_id', 'happy', 'sad', 'calm', 'energy', 'mood'])
         writer.writerows(data)
     
 if __name__ == '__main__':

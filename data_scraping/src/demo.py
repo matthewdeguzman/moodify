@@ -35,11 +35,7 @@ def mood_evaluator(track_data, track_features):
     track_data['calm'] = 0.75 * (1-track_features['energy']) + 0.5 / (1 + (track_features['loudness'] + 60) / 60) - 0.25
     track_data['energy'] = 0.85 * track_features['energy'] + 0.15 * (track_features['loudness'] + 60) / 60 
 
-track_data = {'happy': 0.0, 'sad': 0.0, 'calm': 0.0, 'energy': 0.0}
-track_features = spotify.audio_features('https://open.spotify.com/track/03mMSLEJCPoGJwQhHpN5y0?si=e08874eda9854f4a')[0]
-mood_evaluator(track_data, track_features)
-print(track_features)
-print(track_data)
+print(spotify.track('2vuDdXqekkDCSdawJyUpT6'))
 # for track_data in meta['tracks']:
 #     print(track_data, '\n')
 # # receives a list of related artists
