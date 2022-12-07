@@ -1,8 +1,10 @@
 from pathlib import Path
 from random import randint
 from client_credentials import CLIENT_ID, CLIENT_SECRET, REDIRECT_URI
+from quick_sort import quick_sort
+from merge_sort import merge_sort
+import time
 import spotipy
-import spotipy.util as util
 from spotipy.oauth2 import SpotifyOAuth
 import os
 import csv
@@ -30,6 +32,7 @@ def evaluate_mood(user_responses):
     '''
     mood_list = [0.0, 0.0, 0.0, 0.0]    # happy, sad, calm, and energy
 
+    # lambda function to assign values to the mood list
     def assign_values(sad, calm, happy, energy):
         mood_list[0] += happy
         mood_list[1] += sad
@@ -110,7 +113,7 @@ def print_logo():
     print("""
                                                                         
                                             ,,    ,,      ,...         
-    `7MMM.     ,MMF'                        `7MM    db    .d' ""         
+  `7MMM.     ,MMF'                        `7MM    db    .d' ""         
     MMMb    dPMM                            MM          dM`            
     M YM   ,M MM  ,pW"Wq.   ,pW"Wq.    ,M""bMM  `7MM   mMMmm`7M'   `MF'
     M  Mb  M' MM 6W'   `Wb 6W'   `Wb ,AP    MM    MM    MM    VA   ,V  
@@ -122,24 +125,26 @@ def print_logo():
     """)
 
 def conduct_survey():
+    '''
+    Conducts a survey to determine the user's mood and their desired playlist length.
+    '''
     emotional_resp = [0, 0, 0, 0, 0]
     user_emotions = {}
 
     print("Welcome to Moodify! We're going to help you find the perfect song for your mood.")
     playlist_length = int(ask_question('How long would you like the playlist to be? (1-50) ', valid_responses=[str(i) for i in range(1, 51)]))
-    # playlist_id = ask_question('What is the link of the playlist you would like to add songs to? ')
-    # username = ask_question('What is your Spotify username? ')
     sort_choice = ask_question('What sorting algorithm would you like to use? (1 for quicksort, 2 for mergesort) ' , valid_responses=['1', '2'])
-    
 
-    print("Questionnaire to determine your mood:")
+    print("\nQuestionnaire to determine your mood:")
     emotional_resp[0] = int(ask_question('1. On a scale of 1 through 5, how good are you feeling today? (1 is awful, 5 is amazing) ', valid_responses=[str(i) for i in range(1, 6)]))
     emotional_resp[1] = int(ask_question('2. On a scale of 1 through 5, how good do you expect the rest of the day to be? (1 is awful, 5 is amazing) ', valid_responses=[str(i) for i in range(1, 6)]))
     emotional_resp[2] = int(ask_question('3. On a scale of 1 through 5, Do you want to be left alone? (1 is strongly agree, 5 is a strongly disagree) ', valid_responses=[str(i) for i in range(1, 6)]))
     emotional_resp[3] = int(ask_question('4. On a scale of 1 through 5, Do you feel overwhelmed by work or studies? (1 is strongly agree, 5 is a strongly disagree) ', valid_responses=[str(i) for i in range(1, 6)]))
     emotional_resp[4] = int(ask_question('5. What activity most closely describes your activity whilst listening to music? (1 is Exercising, 2 is Working, 3 is Relaxing) ', valid_responses=['1', '2', '3']))
 
+    # evaluates the user's mood based on their responses
     user_emotions = evaluate_mood(emotional_resp)
+
     return playlist_length, sort_choice, user_emotions
 
 def retrieve_songs(user_emotions, max_songs):
@@ -195,13 +200,36 @@ def retrieve_songs(user_emotions, max_songs):
     return playlist
 
 def main():
-    print_logo()
-    playlist_length, sort_choice, user_emotions = conduct_survey()
-    playlist = retrieve_songs(user_emotions, playlist_length)
-    pl = [playlist[i][0] for i in range(len(playlist))]
-    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri=REDIRECT_URI, scope=scope))
 
+    print_logo()
+
+    # calls the survey and retrieves the user's mood
+    playlist_length, sort_choice, user_emotions = conduct_survey()
+
+    # retrieves the songs that match the user's mood
+    playlist = retrieve_songs(user_emotions, playlist_length)
+
+    # sorts the playlist based on how closely each song matches the user's mood
+    total_time = 0.0
+    if sort_choice == '1':
+        total_time = time.time()
+        quick_sort(playlist, 0, len(playlist)-1)
+        total_time = time.time() - total_time
+        print('Total time for quicksort: ' + str(total_time))
+    else:
+        total_time = time.time()
+        merge_sort(playlist)
+        total_time = time.time() - total_time
+        print('Total time for merge sort: ' + str(total_time))
+
+    # creates a spotify playlist with the sorted songs
+    pl = [playlist[i][0] for i in range(len(playlist))]
+
+    # calls the spotify api to create a playlist
+    spotify = spotipy.Spotify(auth_manager=SpotifyOAuth(client_id=CLIENT_ID, client_secret=CLIENT_SECRET, redirect_uri=REDIRECT_URI, scope=scope))
     spotify.user_playlist_create(user='madmatt10125', name='Moodify Playlist', description='A playlist created by Moodify')
+
+    # retrieves the playlist id from the user's library
     playlist_id = ''
     offset = 0
     while playlist_id == '':
@@ -213,11 +241,9 @@ def main():
                 break
 
         offset += 50
-    print(playlist_id)
+
+    # adds the songs to the playlist
     spotify.user_playlist_add_tracks(user='madmatt10125', playlist_id=playlist_id, tracks=pl)
-    
-
-
 
 if __name__ == '__main__':
     main()
