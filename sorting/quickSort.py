@@ -1,4 +1,4 @@
-import time
+import timeit
 
 def quickSort(list, low, high):
     if (low < high):
@@ -29,10 +29,10 @@ def partition(list, low, high):
 
 x = [("me", 500), ("matthew", 20), ("andres", 1), ("john", 325), ("hannahmontana", 3284)]
 
-startTime = time.time()
+start = timeit.default_timer()
 quickSort(x, 0, len(x) - 1)
-endTime = time.time()
+end = timeit.default_timer()
 
-print("Quicksort took " + str(endTime - startTime) + " seconds to run.")
+print("Quicksort took " + str((end - start) * 1000) + " milliseconds to run.")
 
 print(x)

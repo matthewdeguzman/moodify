@@ -1,4 +1,4 @@
-import time
+import timeit
 
 # assuming a list of tuples is being passed through
 def mergeSort(list):
@@ -40,12 +40,11 @@ def merge(list, left, right):
         listIndex += 1
 
 
-x = [("me", 500), ("matthew", 20), ("andres", 1)]
+x = [("me", 500), ("matthew", 20), ("andres", 1), ("matt bonie", 4542), (3243432, 131), (12312, 35534), ("wolfgang", 0.32542), (12312, .3259432),("wolfgang", 0.32542), (12312, .3259432),("wolfgang", 0.32542), (12312, .3259432),("wolfgang", 0.32542), (12312, .3259432)]
 
-startTime = time.time()
+start = timeit.default_timer()
 mergeSort(x)
-endTime = time.time()
-
-print("Quicksort took " + str(endTime - startTime) + " seconds to run.")
+end = timeit.default_timer()
+print("Quicksort took " + str((end - start) * 1000) + " milliseconds to run.")
 
 print(x)
