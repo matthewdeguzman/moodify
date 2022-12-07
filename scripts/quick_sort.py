@@ -1,4 +1,4 @@
-
+# algorithm for quicksort
 def quick_sort(list, low, high):
     if (low < high):
         pivot = partition(list, low, high)
